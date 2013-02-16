@@ -30,9 +30,21 @@
 
 package org.moresbycoffee.measteregg.android;
 
-import android.os.Bundle;
+import com.google.android.gms.maps.model.LatLng;
+
+import org.moresbycoffee.measteregg.android.comm.ApiCaller;
+import org.moresbycoffee.measteregg.android.comm.ApiCaller2;
+import org.moresbycoffee.measteregg.android.comm.EggApi;
+import org.moresbycoffee.measteregg.android.comm.EggApi.GetEggsCallback;
+import org.moresbycoffee.measteregg.android.entity.Egg;
+
 import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -49,4 +61,24 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    public void getEggs(View view) {
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                ApiCaller2 apiCaller = new ApiCaller2();
+                EggApi eggApi = new EggApi(apiCaller);
+                eggApi.getEggs(new LatLng(1, 1), "userId", new GetEggsCallback() {
+
+                    @Override
+                    public void onComplete(List<Egg> eggs) {
+                        for (Egg egg : eggs) {
+                            Log.i("BB", "egg:" + egg.toString());
+                        }
+                    }
+                });
+            }
+
+        }).start();
+    }
 }

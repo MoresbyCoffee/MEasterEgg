@@ -31,41 +31,62 @@
 package org.moresbycoffee.measteregg.android.comm;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class ApiCaller {
     private final static String TAG = ApiCaller.class.getSimpleName();
-    private static final String ENDPOINT = "http://192.168.0.1";
+    private static final String ENDPOINT = "http://192.168.1.106:8081/MEasterEgg-1.0.0-SNAPSHOT";
 
-    public HttpResponse makeRequest(String path, Map params) throws Exception {
+//    public HttpResponse makeRequest2(String path, Map<String, String> params) {
+//        AndroidHttpClient httpClient = new AndroidHttpClient(ENDPOINT + "/" + path);
+//        httpClient.setMaxRetries(5);
+//        ParameterMap parameterMap = httpClient.newParams();
+//        for (String key : params.keySet()) {
+//            parameterMap.add(key, params.get(key));
+//        }
+//        httpClient.post("/_ah/login", params, new AsyncCallback() {
+//
+//            @Override
+//            public void onComplete(HttpResponse httpResponse) {
+//                // TODO Auto-generated method stub
+//                
+//            }
+//            
+//        });
+//        return null;
+//    }
+
+    public HttpResponse makeRequest(String path, Map<String, String> params) throws Exception {
         //instantiates httpclient to make request
         DefaultHttpClient httpclient = new DefaultHttpClient();
 
         //url with the post data
         HttpPost httpost = new HttpPost(path);
+        //url with the post data
+        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+        for (String key : params.keySet()) {
+            nameValuePairs.add(new BasicNameValuePair(key, params.get(key)));
+        }
+        httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs, "UTF-8"));
 
-        //convert parameters into JSON object
-        JSONObject holder = getJsonObjectFromMap(params);
-
-        //passes the results to a string builder/entity
-        StringEntity se = new StringEntity(holder.toString());
-
-        //sets the post request as the resulting string
-        httpost.setEntity(se);
         //sets a request header so the page receving the request
         //will know what to do with it
-        httpost.setHeader("Accept", "application/json");
+//        httpost.setHeader("Accept", "application/json");
         httpost.setHeader("Content-type", "application/json");
 
         //Handles what is returned from the page 
@@ -116,7 +137,7 @@ public class ApiCaller {
 
     public String call(String path, Map<String, String> params) {
         try {
-            return makeRequest(ENDPOINT + "/ " + path, params).getEntity().toString();
+            return makeRequest(ENDPOINT + "/" + path, params).getEntity().toString();
         } catch (Exception ex) {
             Log.e(TAG, "Exception during call", ex);
             // TODO: error handling

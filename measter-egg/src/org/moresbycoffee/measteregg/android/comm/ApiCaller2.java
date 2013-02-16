@@ -30,55 +30,26 @@
 
 package org.moresbycoffee.measteregg.android.comm;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.turbomanage.httpclient.AsyncCallback;
-import com.turbomanage.httpclient.HttpResponse;
+import com.turbomanage.httpclient.ParameterMap;
+import com.turbomanage.httpclient.android.AndroidHttpClient;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.moresbycoffee.measteregg.android.entity.Egg;
-
-import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class EggApi {
-    public interface GetEggsCallback {
-        public void onComplete(List<Egg> eggs);
+public class ApiCaller2 {
+    private final static String TAG = ApiCaller2.class.getSimpleName();
+    private static final String ENDPOINT = "http://192.168.1.106:8081";
+    private static final String PATH = "MEasterEgg-1.0.0-SNAPSHOT";
+
+    public void makeRequest(String path, Map<String, String> params, AsyncCallback callback) {
+        AndroidHttpClient httpClient = new AndroidHttpClient(ENDPOINT);
+        httpClient.setMaxRetries(5);
+        httpClient.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        ParameterMap parameterMap = httpClient.newParams();
+        for (String key : params.keySet()) {
+            parameterMap.add(key, params.get(key));
+        }
+        httpClient.post("/" + PATH + "/" + path, parameterMap, callback);
     }
 
-    private final static String TAG = EggApi.class.getSimpleName();
-
-    private ApiCaller2 mApiCaller;
-
-    public EggApi(ApiCaller2 apiCaller) {
-        mApiCaller = apiCaller;
-    }
-
-    public void getEggs(LatLng location, String userId, final GetEggsCallback callback) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("lat", Double.toString(location.latitude));
-        params.put("lon", Double.toString(location.longitude));
-        params.put("userId", userId);
-        mApiCaller.makeRequest("eggs", params, new AsyncCallback() {
-            @Override
-            public void onComplete(HttpResponse httpResponse) {
-                Log.i("BB", "response: " + httpResponse.getBodyAsString());
-                List<Egg> eggs = new ArrayList<Egg>();
-                try {
-                    JSONArray root = new JSONArray(httpResponse.getBodyAsString());
-                    for (int i = 0; i < root.length(); i++) {
-                        Egg egg = Egg.createFromJson(root.getJSONObject(i));
-                        eggs.add(egg);
-                    }
-                    callback.onComplete(eggs);
-                } catch (JSONException e) {
-                    Log.i("BB", "Error", e);
-                }
-            }
-        });
-    }
 }

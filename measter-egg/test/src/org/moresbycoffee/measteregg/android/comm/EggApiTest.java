@@ -34,20 +34,56 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.turbomanage.httpclient.AsyncCallback;
+import com.turbomanage.httpclient.HttpResponse;
 
+import org.mockito.ArgumentMatcher;
+import org.moresbycoffee.measteregg.android.comm.EggApi.GetEggsCallback;
 import org.moresbycoffee.measteregg.android.entity.Egg;
+import org.moresbycoffee.measteregg.android.util.TestUtils;
+
+import android.test.InstrumentationTestCase;
 
 import java.util.List;
 
-import junit.framework.TestCase;
+public class EggApiTest extends InstrumentationTestCase {
+    public void testOneEgg() throws Exception {
+        getEggs("egg1.json", new GetEggsCallback() {
+            
+            @Override
+            public void onComplete(List<Egg> eggs) {
+                assertEquals(1, eggs.size());
+                assertEquals(new Egg(51.498912, -0.022831, true), eggs.get(0));
+            }
+        });
+    }
 
-public class EggApiTest extends TestCase {
-    public void testOneEgg() {
-        ApiCaller apiCaller = mock(ApiCaller.class);
-        when(apiCaller.call(anyString(), anyMap())).thenReturn("[{\"lat\":\"12\", \"lon\":\"12\", \"found\":\"true\"}]");
+    public void testTwoEgg() throws Exception {
+        getEggs("egg2.json", new GetEggsCallback() {
+            
+            @Override
+            public void onComplete(List<Egg> eggs) {
+                assertEquals(2, eggs.size());
+                assertEquals(new Egg(51.498912, -0.022831, true), eggs.get(0));
+                assertEquals(new Egg(51.498914, -0.022835, false), eggs.get(1));
+            }
+        });
+    }
+
+    public void getEggs(String assetname, GetEggsCallback callback) throws Exception {
+        final String jsonString = TestUtils.getStringFromAssets(getInstrumentation().getContext(), "eggs/" + assetname);
+        ApiCaller2 apiCaller = mock(ApiCaller2.class);
+        doNothing().when(apiCaller).makeRequest(anyString(), anyMap(), argThat(new ArgumentMatcher<AsyncCallback>() {
+
+            @Override
+            public boolean matches(final Object argument) {
+                HttpResponse response = mock(HttpResponse.class);
+                when(response.getBodyAsString()).thenReturn(jsonString);
+                ((AsyncCallback)argument).onComplete(response);
+                return true;
+            }
+        }));
         EggApi api = new EggApi(apiCaller);
-        List<Egg> eggs = api.getEggs(new LatLng(12, 12), "something");
-        assertEquals(1, eggs.size());
-        
+        api.getEggs(new LatLng(51.498912, -0.022831), "something", callback);
     }
 }
