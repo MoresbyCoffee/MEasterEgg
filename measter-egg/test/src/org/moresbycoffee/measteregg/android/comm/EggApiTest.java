@@ -28,54 +28,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.moresbycoffee.measteregg.android.entity;
+package org.moresbycoffee.measteregg.android.comm;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
-public class Egg {
-    private double lat;
-    private double lon;
-    private boolean found;
+import com.google.android.gms.maps.model.LatLng;
 
-    public Egg() {
-    }
+import org.moresbycoffee.measteregg.android.entity.Egg;
 
-    public Egg(double lat, double lon, boolean found) {
-        this.lat = lat;
-        this.lon = lon;
-        this.found = found;
-    }
+import java.util.List;
 
-    public static Egg createFromJson(JSONObject json) throws JSONException {
-        Egg egg = new Egg();
-        egg.lat = json.getDouble("lat");
-        egg.lon = json.getDouble("lon");
-        egg.found = json.getBoolean("found");
-        return egg;
-    }
+import junit.framework.TestCase;
 
-    public double getLat() {
-        return lat;
-    }
-
-    public void setLat(double lat) {
-        this.lat = lat;
-    }
-
-    public double getLon() {
-        return lon;
-    }
-
-    public void setLon(double lon) {
-        this.lon = lon;
-    }
-
-    public boolean isFound() {
-        return found;
-    }
-
-    public void setFound(boolean found) {
-        this.found = found;
+public class EggApiTest extends TestCase {
+    public void testOneEgg() {
+        ApiCaller apiCaller = mock(ApiCaller.class);
+        when(apiCaller.call(anyString(), anyMap())).thenReturn("[{\"lat\":\"12\", \"lon\":\"12\", \"found\":\"true\"}]");
+        EggApi api = new EggApi(apiCaller);
+        List<Egg> eggs = api.getEggs(new LatLng(12, 12), "something");
+        assertEquals(1, eggs.size());
+        
     }
 }
